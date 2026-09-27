@@ -51,6 +51,8 @@
   </dependencies>
 
   <build>
+    <!-- Si se ejecuta Maven sin goals (p. ej. "Run As > Maven build" en STS), se lanza el Database Inspector -->
+    <defaultGoal>clean spring-boot:run</defaultGoal>
     <plugins>
       <plugin>
         <groupId>org.springframework.boot</groupId>
