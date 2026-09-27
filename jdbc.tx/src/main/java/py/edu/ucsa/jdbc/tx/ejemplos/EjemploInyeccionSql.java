@@ -19,6 +19,9 @@ final class EjemploInyeccionSql {
 		Salida.titulo("5. INYECCIÓN SQL: Statement concatenado vs PreparedStatement");
 		FuncionarioDao dao = new FuncionarioDao();
 		System.out.println("  Búsqueda de funcionarios por apellido exacto. Total en la tabla: " + dao.contar());
+		Salida.info("INSEGURO: \"... WHERE apellido = '\" + textoDelUsuario + \"'\" con Statement: el texto se vuelve parte del SQL.",
+				"SEGURO: \"... WHERE apellido = ?\" con PreparedStatement y ps.setString(1, textoDelUsuario):",
+				"el texto viaja aparte y la base lo trata siempre como un valor, nunca como SQL.");
 
 		comparar(dao, "Pereira", "Entrada normal");
 		comparar(dao, "x' OR '1'='1", "Entrada maliciosa: la condición pasa a ser siempre verdadera");

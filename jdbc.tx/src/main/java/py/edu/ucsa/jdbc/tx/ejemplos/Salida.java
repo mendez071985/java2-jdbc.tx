@@ -29,6 +29,13 @@ final class Salida {
 		System.out.println("--- " + texto + " ---");
 	}
 
+	/** Explicación de lo que se está mostrando (qué hace y qué parte de JDBC usa). */
+	static void info(String... lineas) {
+		for (String linea : lineas) {
+			System.out.println("  [i] " + linea);
+		}
+	}
+
 	static void mostrar(Funcionario f) {
 		System.out.printf(
 				"  ID %-5d | %-10s %-15s | edad %-4s | nac. %-10s | ingreso %-10s | legajo %-5s | foto %s%n",

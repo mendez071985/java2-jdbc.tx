@@ -24,8 +24,11 @@ final class EjemploBatch {
 		FuncionarioDao dao = new FuncionarioDao();
 		long antes = dao.contar();
 		System.out.println("  Funcionarios en la tabla antes: " + antes);
+		Salida.info("Batch = juntar muchas sentencias y mandarlas juntas: ps.addBatch() por cada fila y",
+				"ps.executeBatch() una vez. Menos viajes a la base y un solo commit -> mucho más rápido.");
 
 		Salida.paso("A) " + CANTIDAD + " INSERT uno por uno (una conexión y un commit por cada fila)");
+		Salida.info("dao.insertar(f) por cada fila: pide conexión, ejecuta, confirma (autocommit) y la devuelve.");
 		long inicio = System.nanoTime();
 		List<Long> idsUnoPorUno = new ArrayList<>();
 		for (Funcionario f : generar("UnoPorUno", 8000)) {
@@ -36,6 +39,8 @@ final class EjemploBatch {
 				+ idsUnoPorUno.get(idsUnoPorUno.size() - 1) + ")");
 
 		Salida.paso("B) " + CANTIDAD + " INSERT en batch (addBatch/executeBatch, una conexión y un solo commit)");
+		Salida.info("dao.insertarVarios(lista): setAutoCommit(false), addBatch() x " + CANTIDAD + ", executeBatch(), commit().",
+				"getGeneratedKeys() después del batch devuelve todos los IDs generados.");
 		inicio = System.nanoTime();
 		List<Long> idsBatch = dao.insertarVarios(generar("Batch", 8500));
 		long msBatch = ms(inicio);
@@ -53,6 +58,8 @@ final class EjemploBatch {
 		}
 
 		Salida.paso("DELETE en batch de los " + (idsUnoPorUno.size() + idsBatch.size()) + " registros creados");
+		Salida.info("dao.eliminarVarios(ids): DELETE ... WHERE id = ? en batch; executeBatch() devuelve int[] con",
+				"las filas afectadas por cada sentencia (se suman para saber cuántas se borraron).");
 		List<Long> todos = new ArrayList<>(idsUnoPorUno);
 		todos.addAll(idsBatch);
 		inicio = System.nanoTime();

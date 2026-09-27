@@ -113,7 +113,19 @@ Se elige un número en la consola; con argumentos se ejecuta directo (p. ej. `2`
 | 3 | `EjemploConsultas` | `COUNT`, `AVG`, `LIKE`, `BETWEEN` con fechas, paginación `LIMIT/OFFSET`, `JOIN` + `GROUP BY` |
 | 4 | `EjemploBatch` | 500 INSERT uno por uno vs en **batch** (con tiempos) y DELETE en batch; la tabla queda como estaba |
 | 5 | `EjemploInyeccionSql` | Statement concatenado vs `PreparedStatement` con `x' OR '1'='1` y `O'Higgins` |
+| 6 | `EjemploAvanzado` | **Savepoint** (deshacer sólo una parte), **niveles de aislamiento** con dos conexiones (READ_COMMITTED y REPEATABLE_READ), **ResultSet desplazable** (`last`, `absolute`, `previous`, `first`, `relative`) y **CallableStatement** (función de PostgreSQL) |
 | 9 | — | Todos en orden |
+
+Cada paso imprime líneas `[i]` que explican qué hace y qué método de JDBC usa.
+La opción 3 incluye además el **estado de cuenta** de un funcionario (JOIN funcionarios + cuenta + movimientos).
+
+**Verificación automática de los ejemplos:** `5-VerificarEjemplos.launch` (clase `verificacion.VerificarEjemplos`)
+comprueba con datos reales cada ejemplo (31 verificaciones: CRUD, commit/rollback, consultas, batch, inyección SQL,
+savepoint, aislamiento, ResultSet desplazable y CallableStatement). Resultado esperado:
+
+```
+ RESULTADO: 31 OK, 0 FALLAS -> TODOS LOS EJEMPLOS FUNCIONAN
+```
 
 Los DAO están en `dao/FuncionarioDao.java` y `dao/CuentaDao.java`.
 

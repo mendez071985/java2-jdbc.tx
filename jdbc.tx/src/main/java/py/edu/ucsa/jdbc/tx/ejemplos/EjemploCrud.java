@@ -16,9 +16,14 @@ final class EjemploCrud {
 
 	static void ejecutar() throws Exception {
 		Salida.titulo("1. CRUD: INSERT, SELECT, UPDATE y DELETE");
+		Salida.info("CRUD = Create (INSERT), Read (SELECT), Update (UPDATE), Delete (DELETE).",
+				"Todo con PreparedStatement: los valores van como parámetros (?), nunca pegados al SQL.");
 		FuncionarioDao dao = new FuncionarioDao();
 
 		Salida.paso("PASO 1: INSERT de varios funcionarios (PreparedStatement + RETURN_GENERATED_KEYS)");
+		Salida.info("prepareStatement(sql, Statement.RETURN_GENERATED_KEYS) + executeUpdate().",
+				"getGeneratedKeys() devuelve el ID que generó la base (columna IDENTITY/SERIAL).",
+				"setNull(..., Types.INTEGER) para la edad vacía, setBytes(...) para la foto, setObject(...) para LocalDate.");
 		List<Funcionario> nuevos = List.of(
 				new Funcionario(null, "Casilda", "Pereira", null,          // edad NULL
 						LocalDate.of(1994, 8, 17), LocalDate.now(), null, LocalDateTime.now(), 1009),
@@ -36,11 +41,14 @@ final class EjemploCrud {
 		}
 
 		Salida.paso("PASO 2: SELECT de los registros insertados (buscarPorId)");
+		Salida.info("executeQuery() + ResultSet: rs.getObject(\"edad\", Integer.class) devuelve null si es NULL",
+				"(rs.getInt devolvería 0). buscarPorId devuelve Optional: vacío si el ID no existe.");
 		for (long id : ids) {
 			Salida.mostrar(buscar(dao, id));
 		}
 
 		Salida.paso("PASO 3: UPDATE de los registros insertados");
+		Salida.info("executeUpdate() devuelve cuántas filas cambió: 1 = actualizado, 0 = ese ID no existe.");
 		Funcionario casilda = buscar(dao, ids.get(0));
 		System.out.println("  ID " + casilda.id() + " (edad NULL -> 32 y se carga una foto): " + resultado(dao.actualizar(
 				new Funcionario(casilda.id(), casilda.nombre(), casilda.apellido(), 32,
@@ -61,11 +69,13 @@ final class EjemploCrud {
 				new Funcionario(-1L, "No", "Existe", null, LocalDate.now(), LocalDate.now(), null, LocalDateTime.now(), 0))));
 
 		Salida.paso("PASO 4: SELECT de los registros actualizados");
+		Salida.info("Se vuelven a leer de la base para comprobar que los cambios quedaron guardados.");
 		for (long id : ids) {
 			Salida.mostrar(buscar(dao, id));
 		}
 
 		Salida.paso("PASO 5: DELETE de un registro (" + carlos.nombre() + ", ID " + carlos.id() + ")");
+		Salida.info("DELETE ... WHERE id = ?  -> executeUpdate() devuelve 1 si lo borró, 0 si ya no existía.");
 		System.out.println("  eliminar(" + carlos.id() + ") -> " + (dao.eliminar(carlos.id()) ? "OK (1 fila borrada)" : "no existía"));
 		System.out.println("  buscarPorId(" + carlos.id() + ") -> "
 				+ dao.buscarPorId(carlos.id()).map(f -> "todavía existe").orElse("no existe (Optional.empty)"));

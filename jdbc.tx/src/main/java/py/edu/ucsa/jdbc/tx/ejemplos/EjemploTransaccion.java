@@ -26,6 +26,10 @@ final class EjemploTransaccion {
 
 	static void ejecutar() throws Exception {
 		Salida.titulo("2. TRANSACCIONES: commit y rollback (TransferenciaService)");
+		Salida.info("Una transferencia son 4 operaciones: débito, crédito y 2 movimientos. Deben hacerse TODAS o NINGUNA.",
+				"TransferenciaService: conn.setAutoCommit(false) abre la transacción; si todo sale bien conn.commit(),",
+				"si algo falla conn.rollback() deshace lo que se había hecho. SELECT ... FOR UPDATE bloquea la cuenta",
+				"de origen para que dos transferencias simultáneas no usen el mismo saldo.");
 		FuncionarioDao funcionarios = new FuncionarioDao();
 		CuentaDao cuentas = new CuentaDao();
 		TransferenciaService service = new TransferenciaService();
@@ -40,6 +44,7 @@ final class EjemploTransaccion {
 
 		// Caso 1: todo sale bien -> COMMIT
 		Salida.paso("CASO 1: Ana transfiere 200.000 Gs. a Carlos -> todo sale bien -> COMMIT");
+		Salida.info("Se ejecutan las 4 operaciones y commit(): los cambios quedan guardados.");
 		service.transferir(ana.id(), carlos.id(), new BigDecimal("200000"));
 		System.out.println("  Transferencia confirmada (commit).");
 		mostrarSaldos(cuentas, ana, carlos);
@@ -53,6 +58,7 @@ final class EjemploTransaccion {
 
 		// Caso 2: saldo insuficiente -> ROLLBACK
 		Salida.paso("CASO 2: Ana intenta transferir 5.000.000 Gs. -> saldo insuficiente -> ROLLBACK");
+		Salida.info("El servicio lee el saldo, ve que no alcanza y lanza una excepción: rollback().");
 		intentar(cuentas, ana, carlos, () -> service.transferir(ana.id(), carlos.id(), new BigDecimal("5000000")));
 
 		// Caso 3: falla a mitad de camino -> ROLLBACK deshace el débito ya hecho
@@ -63,6 +69,7 @@ final class EjemploTransaccion {
 
 		// Caso 4: validación antes de empezar la transacción
 		Salida.paso("CASO 4: monto negativo -> se rechaza antes de abrir la transacción");
+		Salida.info("Validar antes de abrir la conexión evita trabajo innecesario en la base.");
 		try {
 			service.transferir(ana.id(), carlos.id(), new BigDecimal("-50000"));
 		} catch (IllegalArgumentException e) {

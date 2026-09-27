@@ -55,6 +55,7 @@ public class Main {
         System.out.println("  3. Consultas: LIKE, BETWEEN, COUNT/AVG, paginación y JOIN");
         System.out.println("  4. INSERT en batch vs uno por uno (y DELETE en batch)");
         System.out.println("  5. Inyección SQL: Statement vs PreparedStatement");
+        System.out.println("  6. Avanzado: savepoints, aislamiento, ResultSet desplazable, CallableStatement");
         System.out.println("  9. Ejecutar todos en orden");
         System.out.println("  0. Salir");
         System.out.print("Opción: ");
@@ -69,12 +70,14 @@ public class Main {
                 case "3" -> EjemploConsultas.ejecutar();
                 case "4" -> EjemploBatch.ejecutar();
                 case "5" -> EjemploInyeccionSql.ejecutar();
+                case "6" -> EjemploAvanzado.ejecutar();
                 case "9" -> {
                     EjemploCrud.ejecutar();
                     EjemploTransaccion.ejecutar();
                     EjemploConsultas.ejecutar();
                     EjemploBatch.ejecutar();
                     EjemploInyeccionSql.ejecutar();
+                    EjemploAvanzado.ejecutar();
                 }
                 default -> System.out.println("Opción inválida: \"" + opcion + "\"");
             }
