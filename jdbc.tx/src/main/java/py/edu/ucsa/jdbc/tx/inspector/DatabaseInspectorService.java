@@ -216,7 +216,7 @@ public class DatabaseInspectorService {
 	 * Arma "esquema"."tabla" usando el carácter de comillas que informa el motor,
 	 * para soportar mayúsculas, espacios o palabras reservadas en los nombres.
 	 */
-	static String nombreCalificado(DatabaseMetaData md, TableRef tabla) throws SQLException {
+	public static String nombreCalificado(DatabaseMetaData md, TableRef tabla) throws SQLException {
 		String q = comillas(md);
 		String nombre = citar(tabla.name(), q);
 		if (tabla.schema() != null && !tabla.schema().isBlank()) {
