@@ -132,9 +132,9 @@ class DatabaseInspectorServiceTest {
 					assertThat(i.unique()).isFalse();
 					assertThat(i.columns()).containsExactly("apellido", "nombre");
 				});
-		assertThat(indices).anySatisfy(i -> {
+		assertThat(inspector.listarIndices(tabla("departamento"))).anySatisfy(i -> {
 			assertThat(i.unique()).isTrue();
-			assertThat(i.columns()).containsExactly("legajo");
+			assertThat(i.columns()).containsExactly("nombre");
 		});
 		assertThat(indices).anySatisfy(i -> {
 			assertThat(i.unique()).isTrue();

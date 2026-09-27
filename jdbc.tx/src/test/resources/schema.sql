@@ -14,7 +14,7 @@ CREATE TABLE funcionarios (
     fecha_ingreso     DATE         NOT NULL,
     foto              BYTEA,
     fecha_ult_modif   TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    legajo            INTEGER      NOT NULL UNIQUE,
+    legajo            INTEGER      NOT NULL,
     departamento_id   INTEGER      REFERENCES departamento(id) ON DELETE SET NULL
 );
 CREATE INDEX idx_funcionarios_apellido_nombre ON funcionarios (apellido, nombre);
