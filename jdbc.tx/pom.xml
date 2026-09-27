@@ -20,6 +20,8 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <java.version>21</java.version>
+    <!-- Clase principal del Database Inspector (hay otros main de ejemplo en el proyecto) -->
+    <start-class>py.edu.ucsa.jdbc.tx.App</start-class>
   </properties>
 
   <dependencies>
