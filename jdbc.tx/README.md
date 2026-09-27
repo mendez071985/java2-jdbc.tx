@@ -75,14 +75,40 @@ DB_URL=jdbc:postgresql://host:5432/otra DB_USER=yo DB_PASSWORD=secreto DB_SCHEMA
 
 Elegir una tabla por su número; `0` sale.
 
-### 3. Tests automáticos
+### 3. Preparar datos, verificar el TP y prueba de estrés (desde STS, sin psql)
+
+En STS: clic derecho en cada archivo `.launch` de la raíz del proyecto → *Run As* → el nombre de la configuración.
+(O clic derecho en la clase → *Run As → Java Application*.)
+
+| Paso | Configuración / clase | Qué hace |
+|---|---|---|
+| 1 | `1-PrepararDatos` → `demo.PrepararDatos` | Crea tablas `tp_*` y `"TP Auditoria"` con datos que usan **todo** lo que muestra el inspector: autoincrementales, NULL/NOT NULL, PK simple y compuesta, FK simple y compuesta, índices únicos/no únicos/de expresión, tablas con miles de filas y una tabla sin PK. **No toca ninguna otra tabla.** Si ya están cargados no hace nada; con el argumento `--recargar` vacía sólo las `tp_*` y las recarga. Inserta con operaciones batch dentro de una transacción. |
+| 2 | `2-VerificarTP` → `verificacion.VerificarTP` | Recorre, contra tu base, cada requisito del TP (1 a 17) y marca `[ OK ]`, `[FALLA]` o `[AVISO]` con la evidencia. |
+| 3 | `3-PruebaEstres` → `verificacion.PruebaEstres` | Prueba de estrés paso a paso (1 → 5 → 10 → 25 → 50 hilos). Argumentos: `<hilos por paso> <iteraciones>`, p. ej. `50,100,200 50`. |
+| 4 | `DatabaseInspector` → `App` | El inspector interactivo. |
+
+Desde PowerShell:
+
+```powershell
+.\mvnw.cmd spring-boot:run "-Dspring-boot.run.main-class=py.edu.ucsa.jdbc.tx.demo.PrepararDatos"
+.\mvnw.cmd spring-boot:run "-Dspring-boot.run.main-class=py.edu.ucsa.jdbc.tx.verificacion.VerificarTP"
+.\mvnw.cmd spring-boot:run "-Dspring-boot.run.main-class=py.edu.ucsa.jdbc.tx.verificacion.PruebaEstres"
+```
+
+Resultado esperado de `VerificarTP` después de `PrepararDatos`:
+
+```
+ RESULTADO: 18 OK, 0 FALLAS, 0 AVISOS -> EL TRABAJO PRÁCTICO FUNCIONA
+```
+
+### 4. Tests automáticos
 
 ```bash
 mvn test                                  # H2 en memoria, no necesita PostgreSQL
 mvn test -Dspring.profiles.active=pg      # contra PostgreSQL (requiere el paso 1)
 ```
 
-### 4. Prueba de estrés paso a paso
+### 5. Prueba de estrés con Maven
 
 Ejecuta la inspección completa de las tablas (metadatos + consulta) con cantidades
 crecientes de hilos concurrentes. Falla si hay algún error o si quedan conexiones sin
