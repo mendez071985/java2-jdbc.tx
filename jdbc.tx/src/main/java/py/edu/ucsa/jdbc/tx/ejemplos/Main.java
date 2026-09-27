@@ -33,6 +33,9 @@ public class Main {
                         1009
                 );
 
+        // Agrega a la base las tablas/columnas que falten (no borra datos)
+        PreparacionBase.asegurarTablas(Database.getDataSource());
+
         FuncionarioDao dao =
                 new FuncionarioDao();
 
