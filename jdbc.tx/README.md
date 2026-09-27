@@ -101,14 +101,30 @@ Resultado esperado de `VerificarTP` después de `PrepararDatos`:
  RESULTADO: 18 OK, 0 FALLAS, 0 AVISOS -> EL TRABAJO PRÁCTICO FUNCIONA
 ```
 
-### 4. Tests automáticos
+### 4. Menú de ejemplos JDBC (`ejemplos.Main`)
+
+En STS: `4-MenuEjemplos.launch` → *Run As → 4-MenuEjemplos* (o clic derecho en `ejemplos/Main.java` → *Run As → Java Application*).
+Se elige un número en la consola; con argumentos se ejecuta directo (p. ej. `2`, `1 3` o `9`).
+
+| Opción | Clase | Qué muestra |
+|---|---|---|
+| 1 | `EjemploCrud` | INSERT con ID generado, SELECT por ID y de todos, UPDATE (incluye NULL y `byte[]`), DELETE, casos de ID inexistente |
+| 2 | `EjemploTransaccion` | `TransferenciaService`: transferencia OK (**commit**), saldo insuficiente (**rollback**), destino inexistente a mitad de camino (**rollback** deshace el débito), validación previa; muestra saldos y movimientos (JOIN) |
+| 3 | `EjemploConsultas` | `COUNT`, `AVG`, `LIKE`, `BETWEEN` con fechas, paginación `LIMIT/OFFSET`, `JOIN` + `GROUP BY` |
+| 4 | `EjemploBatch` | 500 INSERT uno por uno vs en **batch** (con tiempos) y DELETE en batch; la tabla queda como estaba |
+| 5 | `EjemploInyeccionSql` | Statement concatenado vs `PreparedStatement` con `x' OR '1'='1` y `O'Higgins` |
+| 9 | — | Todos en orden |
+
+Los DAO están en `dao/FuncionarioDao.java` y `dao/CuentaDao.java`.
+
+### 5. Tests automáticos
 
 ```bash
 mvn test                                  # H2 en memoria, no necesita PostgreSQL
 mvn test -Dspring.profiles.active=pg      # contra PostgreSQL (requiere el paso 1)
 ```
 
-### 5. Prueba de estrés con Maven
+### 6. Prueba de estrés con Maven
 
 Ejecuta la inspección completa de las tablas (metadatos + consulta) con cantidades
 crecientes de hilos concurrentes. Falla si hay algún error o si quedan conexiones sin
