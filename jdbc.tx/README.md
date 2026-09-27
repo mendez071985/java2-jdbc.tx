@@ -35,7 +35,23 @@ autoincrementales, `bytea` y una tabla con espacios en el nombre (`"Log Eventos"
 
 ### 2. Ejecutar la aplicación
 
+**Clase principal: `py.edu.ucsa.jdbc.tx.App`** (no `ejemplos.Main`, que es el ejemplo de inserción).
+
+#### Desde Spring Tools (STS) / Eclipse
+
+1. *File → Import → Maven → Existing Maven Projects* y elegir la carpeta `jdbc.tx` (la que tiene el `pom.xml`).
+2. Clic derecho en el proyecto → *Maven → Update Project…* (tildar *Force Update*) y luego *Project → Clean…*.
+3. *Run → Run Configurations…*: borrar cualquier configuración vieja que apunte a `ejemplos.Main`.
+4. Ejecutar con **Run → Run History / Favorites → DatabaseInspector** (viene incluida en `DatabaseInspector.launch`),
+   o clic derecho en `App.java` → *Run As → Spring Boot App* / *Java Application*.
+5. Escribir el número de la tabla en la vista *Console*.
+
+#### Desde la terminal (no hace falta tener Maven instalado)
+
 ```bash
+./mvnw spring-boot:run        # Linux / Mac
+mvnw.cmd spring-boot:run      # Windows
+# o, con Maven instalado:
 mvn spring-boot:run
 # o bien
 mvn package -DskipTests && java -jar target/jdbc.tx-0.0.1-SNAPSHOT.jar
