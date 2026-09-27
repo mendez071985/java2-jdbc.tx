@@ -17,7 +17,7 @@ CREATE TABLE funcionarios (
     fecha_ingreso     DATE         NOT NULL,
     foto              BYTEA,
     fecha_ult_modif   TIMESTAMP    NOT NULL DEFAULT now(),
-    legajo            INTEGER      NOT NULL UNIQUE,
+    legajo            INTEGER      NOT NULL,
     departamento_id   INTEGER      REFERENCES departamento(id) ON DELETE SET NULL
 );
 CREATE INDEX idx_funcionarios_apellido_nombre ON funcionarios (apellido, nombre);
@@ -66,9 +66,9 @@ INSERT INTO departamento (nombre) VALUES ('Sistemas'), ('Contabilidad'), ('RRHH'
 
 INSERT INTO funcionarios (nombre, apellido, edad, fecha_nacimiento, fecha_ingreso, legajo, departamento_id)
 SELECT 'Nombre' || g, 'Apellido' || g, 20 + (g % 40),
-       DATE '1980-01-01' + g * 200, DATE '2015-01-01' + g * 30, 1000 + g, 1 + (g % 3)
+       DATE '1980-01-01' + g * 200, DATE '2015-01-01' + g * 30, 2000 + g, 1 + (g % 3)
 FROM generate_series(1, 25) g;
-UPDATE funcionarios SET foto = '\xCAFEBABE'::bytea WHERE legajo = 1001;
+UPDATE funcionarios SET foto = '\xCAFEBABE'::bytea WHERE legajo = 2001;
 
 INSERT INTO cuenta_funcionario (funcionario_id, saldo)
 SELECT id, 1000000 FROM funcionarios;

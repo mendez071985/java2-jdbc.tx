@@ -33,6 +33,16 @@ Crea 7 tablas con PK simples y compuestas, FK simples y compuestas, índices, co
 autoincrementales, `bytea` y una tabla con espacios en el nombre (`"Log Eventos"`).
 **Borra y recrea esas tablas** si ya existen.
 
+#### ¿Ya tenés tus propias tablas? (sin borrar nada)
+
+Si al ejecutar el ejemplo `ejemplos.Main` aparece un error como
+`column "fecha_nacimiento" of relation "funcionarios" does not exist`, tu tabla tiene otra estructura.
+Este script **no borra datos**: sólo agrega las columnas que falten y crea `cuenta_funcionario` y `movimiento` si no existen.
+
+```bash
+psql -h localhost -p 5435 -U postgres -d ucsajava -f db/ajustar_tablas_ejemplo.sql
+```
+
 ### 2. Ejecutar la aplicación
 
 **Clase principal: `py.edu.ucsa.jdbc.tx.App`** (no `ejemplos.Main`, que es el ejemplo de inserción).
