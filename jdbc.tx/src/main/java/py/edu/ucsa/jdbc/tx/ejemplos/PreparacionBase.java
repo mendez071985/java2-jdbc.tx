@@ -10,7 +10,8 @@ import javax.sql.DataSource;
  * Deja la base lista para los ejemplos (FuncionarioDao y TransferenciaService).
  * <p>
  * NO borra tablas ni datos: sólo crea las tablas que no existen y agrega a
- * {@code funcionarios} las columnas que falten. Se puede ejecutar siempre.
+ * {@code funcionarios} las columnas que falten. Las claves (PK y FK) sólo se agregan
+ * cuando los datos existentes lo permiten. Se puede ejecutar siempre.
  * Es lo mismo que hace el script {@code db/ajustar_tablas_ejemplo.sql}.
  */
 public final class PreparacionBase {
@@ -30,26 +31,64 @@ public final class PreparacionBase {
 			"ALTER TABLE funcionarios ADD COLUMN IF NOT EXISTS foto             BYTEA",
 			"ALTER TABLE funcionarios ADD COLUMN IF NOT EXISTS fecha_ult_modif  TIMESTAMP",
 			"ALTER TABLE funcionarios ADD COLUMN IF NOT EXISTS legajo           INTEGER",
+			// Si funcionarios no tiene clave primaria, se la agrega sobre id (sólo si los valores lo permiten)
+			"""
+			DO $$
+			BEGIN
+			    IF NOT EXISTS (SELECT 1 FROM pg_constraint
+			                   WHERE conrelid = 'funcionarios'::regclass AND contype = 'p')
+			       AND NOT EXISTS (SELECT 1 FROM funcionarios WHERE id IS NULL)
+			       AND NOT EXISTS (SELECT id FROM funcionarios GROUP BY id HAVING count(*) > 1) THEN
+			        ALTER TABLE funcionarios ADD PRIMARY KEY (id);
+			    END IF;
+			END $$
+			""",
+			// Tablas de TransferenciaService: se crean sin FK y la FK se agrega aparte, sólo si es posible
 			"""
 			CREATE TABLE IF NOT EXISTS cuenta_funcionario (
 			    id              BIGSERIAL PRIMARY KEY,
-			    funcionario_id  BIGINT NOT NULL UNIQUE REFERENCES funcionarios(id),
+			    funcionario_id  BIGINT NOT NULL UNIQUE,
 			    saldo           NUMERIC(15,2) NOT NULL DEFAULT 0
 			)
 			""",
 			"""
 			CREATE TABLE IF NOT EXISTS movimiento (
 			    id              BIGSERIAL PRIMARY KEY,
-			    funcionario_id  BIGINT NOT NULL REFERENCES funcionarios(id),
+			    funcionario_id  BIGINT NOT NULL,
 			    tipo            VARCHAR(10) NOT NULL,
 			    monto           NUMERIC(15,2) NOT NULL,
 			    fecha_hora      TIMESTAMP NOT NULL,
 			    descripcion     TEXT
 			)
-			"""
+			""",
+			claveForanea("cuenta_funcionario"),
+			claveForanea("movimiento")
 	};
 
 	private PreparacionBase() {
+	}
+
+	/**
+	 * Agrega la FK tabla(funcionario_id) -> funcionarios(id) sólo si no hay ya una FK
+	 * a funcionarios, si funcionarios.id es único y si los datos existentes la cumplen.
+	 */
+	private static String claveForanea(String tabla) {
+		return """
+				DO $$
+				BEGIN
+				    IF NOT EXISTS (SELECT 1 FROM pg_constraint
+				                   WHERE conrelid = '%1$s'::regclass AND contype = 'f'
+				                     AND confrelid = 'funcionarios'::regclass)
+				       AND EXISTS (SELECT 1 FROM pg_index i
+				                   JOIN pg_attribute a ON a.attrelid = i.indrelid AND a.attnum = i.indkey[0]
+				                   WHERE i.indrelid = 'funcionarios'::regclass AND i.indisunique
+				                     AND i.indnatts = 1 AND a.attname = 'id')
+				       AND NOT EXISTS (SELECT 1 FROM %1$s t
+				                       WHERE NOT EXISTS (SELECT 1 FROM funcionarios f WHERE f.id = t.funcionario_id)) THEN
+				        ALTER TABLE %1$s ADD FOREIGN KEY (funcionario_id) REFERENCES funcionarios(id);
+				    END IF;
+				END $$
+				""".formatted(tabla);
 	}
 
 	public static void asegurarTablas(DataSource dataSource) throws SQLException {

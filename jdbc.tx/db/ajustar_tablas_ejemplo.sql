@@ -1,6 +1,8 @@
 -- Ajusta una base EXISTENTE para que funcionen los ejemplos del curso
 -- (ejemplos.Main -> FuncionarioDao y TransferenciaService).
 -- NO borra tablas ni datos: sólo crea lo que no existe y agrega las columnas que falten.
+-- Las claves (PK y FK) sólo se agregan cuando los datos existentes lo permiten.
+-- Hace lo mismo que ejemplos/PreparacionBase.java, que ejecuta ejemplos.Main al arrancar.
 -- Se puede ejecutar varias veces sin problema.
 --
 -- Uso: psql -h localhost -p 5435 -U postgres -d ucsajava -f db/ajustar_tablas_ejemplo.sql
@@ -21,18 +23,59 @@ ALTER TABLE funcionarios ADD COLUMN IF NOT EXISTS foto             BYTEA;
 ALTER TABLE funcionarios ADD COLUMN IF NOT EXISTS fecha_ult_modif  TIMESTAMP;
 ALTER TABLE funcionarios ADD COLUMN IF NOT EXISTS legajo           INTEGER;
 
--- Tablas que usa TransferenciaService
+-- Si funcionarios no tiene clave primaria, se la agrega sobre id (sólo si los valores lo permiten)
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint
+                   WHERE conrelid = 'funcionarios'::regclass AND contype = 'p')
+       AND NOT EXISTS (SELECT 1 FROM funcionarios WHERE id IS NULL)
+       AND NOT EXISTS (SELECT id FROM funcionarios GROUP BY id HAVING count(*) > 1) THEN
+        ALTER TABLE funcionarios ADD PRIMARY KEY (id);
+    END IF;
+END $$;
+
+-- Tablas que usa TransferenciaService (la FK se agrega aparte, sólo si es posible)
 CREATE TABLE IF NOT EXISTS cuenta_funcionario (
     id              BIGSERIAL PRIMARY KEY,
-    funcionario_id  BIGINT NOT NULL UNIQUE REFERENCES funcionarios(id),
+    funcionario_id  BIGINT NOT NULL UNIQUE,
     saldo           NUMERIC(15,2) NOT NULL DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS movimiento (
     id              BIGSERIAL PRIMARY KEY,
-    funcionario_id  BIGINT NOT NULL REFERENCES funcionarios(id),
+    funcionario_id  BIGINT NOT NULL,
     tipo            VARCHAR(10) NOT NULL,
     monto           NUMERIC(15,2) NOT NULL,
     fecha_hora      TIMESTAMP NOT NULL,
     descripcion     TEXT
 );
+
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint
+                   WHERE conrelid = 'cuenta_funcionario'::regclass AND contype = 'f'
+                     AND confrelid = 'funcionarios'::regclass)
+       AND EXISTS (SELECT 1 FROM pg_index i
+                   JOIN pg_attribute a ON a.attrelid = i.indrelid AND a.attnum = i.indkey[0]
+                   WHERE i.indrelid = 'funcionarios'::regclass AND i.indisunique
+                     AND i.indnatts = 1 AND a.attname = 'id')
+       AND NOT EXISTS (SELECT 1 FROM cuenta_funcionario t
+                       WHERE NOT EXISTS (SELECT 1 FROM funcionarios f WHERE f.id = t.funcionario_id)) THEN
+        ALTER TABLE cuenta_funcionario ADD FOREIGN KEY (funcionario_id) REFERENCES funcionarios(id);
+    END IF;
+END $$;
+
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint
+                   WHERE conrelid = 'movimiento'::regclass AND contype = 'f'
+                     AND confrelid = 'funcionarios'::regclass)
+       AND EXISTS (SELECT 1 FROM pg_index i
+                   JOIN pg_attribute a ON a.attrelid = i.indrelid AND a.attnum = i.indkey[0]
+                   WHERE i.indrelid = 'funcionarios'::regclass AND i.indisunique
+                     AND i.indnatts = 1 AND a.attname = 'id')
+       AND NOT EXISTS (SELECT 1 FROM movimiento t
+                       WHERE NOT EXISTS (SELECT 1 FROM funcionarios f WHERE f.id = t.funcionario_id)) THEN
+        ALTER TABLE movimiento ADD FOREIGN KEY (funcionario_id) REFERENCES funcionarios(id);
+    END IF;
+END $$;
